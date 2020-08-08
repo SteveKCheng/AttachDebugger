@@ -244,6 +244,18 @@ namespace AttachDebugger
             eventHandle = null;
             processId = 0;
 
+            if (argv.Length == 0)
+            {
+                MessageBox.Show($"Usage: {ExecutablePath} {{-r|-u|-p ProcessId [-e EventHandle]}}\n\n" +
+                    "-r: Register this program as the Windows JIT debugger\n" +
+                    "-u: Unregister this program\n" +
+                    "-p: Process ID of program to attach to\n" +
+                    "-e: Event handle to signal after successful attachment\n",
+                    "Attach Debugger",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
             if (argv.Length == 1 && argv[0] == "-r")
             {
                 RegisterProgram(true);
