@@ -15,29 +15,39 @@ namespace AttachDebugger
         [STAThread]
         public static int Main(string[] argv)
         {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            int appProcessId = 0;
-            if (!ParseArguments(argv, out appProcessId, out var eventHandle))
-                return 1;
-
-            var debuggerInfo = GetDebuggerInformation();
-
-            var window = new MainWindow(debuggerInfo);
-            Application.Run(window);
-
-            var selectedDebugger = window.AcceptedSelection;
-            if (selectedDebugger == null)
-                return 2;
-
-            if (selectedDebugger.IdeProcess != null)
+            try
             {
-                VisualStudioAttacher.AttachToDebuggee(selectedDebugger.IdeProcess!, appProcessId);
-            }
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
 
-            return 0;
+                int appProcessId = 0;
+                if (!ParseArguments(argv, out appProcessId, out var eventHandle))
+                    return 1;
+
+                var debuggerInfo = GetDebuggerInformation();
+
+                var window = new MainWindow(debuggerInfo);
+                Application.Run(window);
+
+                var selectedDebugger = window.AcceptedSelection;
+                if (selectedDebugger == null)
+                    return 2;
+
+                if (selectedDebugger.IdeProcess != null)
+                {
+                    VisualStudioAttacher.AttachToDebuggee(selectedDebugger.IdeProcess!, appProcessId);
+                }
+
+                return 0;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Encountered failure: \n\n" + e.ToString(), 
+                                "Attach Debugger",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 3;
+            }
         }
 
         private static List<DebuggerInformation> GetDebuggerInformation()
@@ -84,14 +94,16 @@ namespace AttachDebugger
             if (argv.Length < 2 || argv[0] != "-p")
             {
                 MessageBox.Show("Invalid arguments passed to debugger attacher. ",
-                                "Attach Debugger", MessageBoxButtons.OK);
+                                "Attach Debugger", 
+                                MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return false;
             }
 
             if (!int.TryParse(argv[1], out processId) || processId <= 0)
             {
                 MessageBox.Show("Invalid process ID passed to debugger attacher. ",
-                                "Attach Debugger", MessageBoxButtons.OK);
+                                "Attach Debugger", 
+                                MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return false;
             }
 
@@ -100,7 +112,8 @@ namespace AttachDebugger
                 if (!int.TryParse(argv[3], out var eventHandleInt) || eventHandleInt <= 0)
                 {
                     MessageBox.Show("Invalid event handle passed to debugger attacher. ",
-                                    "Attach Debugger", MessageBoxButtons.OK);
+                                    "Attach Debugger", 
+                                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return false;
                 }
 
