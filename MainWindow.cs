@@ -22,10 +22,13 @@ namespace AttachDebugger
             InitializeComponent();
         }
 
-        public MainWindow(List<DebuggerInformation> debuggerInfo)
+        public MainWindow(string title, List<DebuggerInformation> debuggerInfo)
         {
             _debuggerInfo = debuggerInfo;
+
             InitializeComponent();
+
+            Text = title;
 
             foreach (var item in debuggerInfo)
             {

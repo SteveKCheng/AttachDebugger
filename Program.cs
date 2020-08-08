@@ -3,6 +3,7 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -40,8 +41,11 @@ namespace AttachDebugger
                 try
                 {
                     var debuggerInfo = GetDebuggerInformation();
+                    var appProcess = Process.GetProcessById(appProcessId);
 
-                    var window = new MainWindow(debuggerInfo);
+                    var title = $"Attach Debugger: {appProcess.ProcessName}, PID {appProcessId}";
+
+                    var window = new MainWindow(title, debuggerInfo);
                     Application.Run(window);
 
                     var selectedDebugger = window.AcceptedSelection;
