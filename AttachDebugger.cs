@@ -185,6 +185,10 @@ namespace AttachDebugger
         {
             Process[] processes = Process.GetProcesses();
 
+            // Don't check this because it requires opening the Win32 Process handle.
+            // If Visual Studio is running elevated, it will fail with "Access Denied"
+            // Win32Exception.
+            /*
             bool matchesVisualStudioFileName(string? path)
             {
                 if (path == null)
@@ -192,9 +196,9 @@ namespace AttachDebugger
 
                 return "devenv.exe".Equals(Path.GetFileName(path), StringComparison.OrdinalIgnoreCase);
             }
+            */
 
-            return processes.Where(p => p.ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase) &&
-                                        matchesVisualStudioFileName(p.MainModule?.FileName));
+            return processes.Where(p => p.ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase));
         }
 
         public static List<string> QueryVsWhereProperty(string requires, string property)
