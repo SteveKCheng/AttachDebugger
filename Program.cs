@@ -1,9 +1,11 @@
+using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -30,6 +32,10 @@ namespace AttachDebugger
                 int appProcessId = 0;
                 if (!ParseArguments(argv, out appProcessId, out var eventHandle))
                     return 1;
+
+                // When just registering this program
+                if (appProcessId == 0)
+                    return 0;
 
                 try
                 {
@@ -107,12 +113,142 @@ namespace AttachDebugger
             return debuggerInfo;
         }
 
+        #region Registration of this program as JIT debugger
+
+        /// <summary>
+        /// Backing field for <see cref="ExecutablePath"/> property.
+        /// </summary>
+        private static volatile string? _exePath;
+
+        /// <summary>
+        /// Get the full filesystem path to the current executable.
+        /// </summary>
+        public static string ExecutablePath
+        {
+            get
+            {
+                var exePath = _exePath;
+                if (exePath == null)
+                {
+                    exePath = new Uri(Assembly.GetEntryAssembly()!.CodeBase!, UriKind.Absolute).LocalPath;
+                    if (Path.GetExtension(exePath) == ".dll")
+                        exePath = Path.ChangeExtension(exePath, ".exe");
+
+                    _exePath = exePath;
+                }
+
+                return exePath;
+            }
+        }
+
+        /// <summary>
+        /// Run all actions in sequence, even if any earlier action fails.
+        /// </summary>
+        private static void RunActions(IEnumerable<Action> actions)
+        {
+            List<Exception>? exceptions = null;
+            foreach (var action in actions)
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception e)
+                {
+                    exceptions = exceptions ?? new List<Exception>();
+                    exceptions.Add(e);
+                }
+            }
+
+            if (exceptions != null)
+                throw new AggregateException(exceptions);
+        }
+
+        /// <summary>
+        /// Run all actions in sequence, even if any earlier action fails.
+        /// </summary>
+        private static void RunActions(params Action[] actions)
+            => RunActions((IEnumerable<Action>)actions);
+
+        /// <summary>
+        /// Register or unregister this program as a JIT debugger on Windows.
+        /// </summary>
+        /// <param name="enable">
+        /// Whether to register or unregister this program.
+        /// </param>
+        private static void RegisterProgram(bool enable)
+        {
+            if (Environment.Is64BitOperatingSystem)
+            {
+                RunActions(() => RegisterProgram(RegistryView.Registry64, enable),
+                           () => RegisterProgram(RegistryView.Registry32, enable));
+            }
+            else
+            {
+                RegisterProgram(RegistryView.Default, enable);
+            }
+        }
+
+        /// <summary>
+        /// Register or unregister this program as a JIT debugger on Windows.
+        /// </summary>
+        /// <param name="registryView">
+        /// Select which Windows Registry to manipulate: 32-bit or 64-bit. 
+        /// </param>
+        /// <param name="enable">
+        /// Whether to register or unregister this program.
+        /// </param>
+        private static void RegisterProgram(RegistryView registryView, bool enable)
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, registryView);
+            using var key = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug", true);
+            
+            if (enable)
+            {
+                string exePath = ExecutablePath;
+                object? oldValue = key.GetValue("Debugger");
+                var newValue = $@"""{exePath}"" -p %ld -e %ld";
+                if (newValue.Equals(oldValue))
+                    return;
+                if (oldValue != null)
+                    key.SetValue("DebuggerBackup", oldValue);
+                key.SetValue("Debugger", newValue);
+            }
+            else
+            {
+                object? oldValue = key.GetValue("DebuggerBackup");
+                if (oldValue != null)
+                {
+                    key.SetValue("Debugger", oldValue);
+                    key.DeleteValue("DebuggerBackup");
+                }
+                else
+                {
+                    key.DeleteValue("Debugger");
+                }
+            }
+        }
+
+        #endregion
+
         private static bool ParseArguments(string[] argv, 
                                            out int processId,
                                            out SafeWaitHandle? eventHandle)
         {
             eventHandle = null;
             processId = 0;
+
+            if (argv.Length == 1 && argv[0] == "-r")
+            {
+                RegisterProgram(true);
+                return true;
+            }
+
+            if (argv.Length == 1 && argv[0] == "-u")
+            {
+                RegisterProgram(false);
+                return true;
+            }
 
             if (argv.Length < 2 || argv[0] != "-p")
             {
