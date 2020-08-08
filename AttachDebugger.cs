@@ -19,19 +19,19 @@ namespace AttachDebugger
 
     public static class VisualStudioAttacher
     {
-        [DllImport("ole32", ExactSpelling = true)]
+        [DllImport("ole32", CallingConvention = CallingConvention.Winapi, ExactSpelling = true)]
         private static extern int CreateBindCtx(int reserved, out IBindCtx ppbc);
 
-        [DllImport("ole32", ExactSpelling = true)]
+        [DllImport("ole32", CallingConvention = CallingConvention.Winapi, ExactSpelling = true)]
         private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable prot);
 
-        [DllImport("user32", SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true)]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("user32", SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true)]
         private static extern IntPtr SetFocus(IntPtr hWnd);
 
-        [DllImport("user32", ExactSpelling = true)]
+        [DllImport("user32", CallingConvention = CallingConvention.Winapi, ExactSpelling = true)]
         private static extern int ShowWindow(int hwnd, int nCmdShow);
 
         public static string? GetOpenSolutionFilePath(Process visualStudioProcess)

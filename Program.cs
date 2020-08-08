@@ -1,14 +1,20 @@
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace AttachDebugger
 {
     public static class Program
     {
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true, ExactSpelling = true)]
+        private static extern bool SetEvent(SafeWaitHandle hEvent);
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
@@ -25,18 +31,35 @@ namespace AttachDebugger
                 if (!ParseArguments(argv, out appProcessId, out var eventHandle))
                     return 1;
 
-                var debuggerInfo = GetDebuggerInformation();
-
-                var window = new MainWindow(debuggerInfo);
-                Application.Run(window);
-
-                var selectedDebugger = window.AcceptedSelection;
-                if (selectedDebugger == null)
-                    return 2;
-
-                if (selectedDebugger.IdeProcess != null)
+                try
                 {
-                    VisualStudioAttacher.AttachToDebuggee(selectedDebugger.IdeProcess!, appProcessId);
+                    var debuggerInfo = GetDebuggerInformation();
+
+                    var window = new MainWindow(debuggerInfo);
+                    Application.Run(window);
+
+                    var selectedDebugger = window.AcceptedSelection;
+                    if (selectedDebugger == null)
+                        return 2;
+
+                    if (selectedDebugger.IdeProcess != null)
+                    {
+                        VisualStudioAttacher.AttachToDebuggee(selectedDebugger.IdeProcess!, appProcessId);
+                    }
+                }
+                finally
+                {
+                    if (eventHandle != null)
+                    {
+                        bool success = SetEvent(eventHandle);
+                        eventHandle.Close();
+
+                        if (!success)
+                        { 
+                            throw new Win32Exception(Marshal.GetLastWin32Error(), 
+                                "Could not signal event handle telling the program to be debugged to continue. ");
+                        }
+                    }
                 }
 
                 return 0;
