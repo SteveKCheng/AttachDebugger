@@ -187,6 +187,12 @@ namespace AttachDebugger
             {
                 RegisterProgram(RegistryView.Default, enable);
             }
+
+            MessageBox.Show(
+                enable ? "This program has successfully registered itself as the Windows JIT debugger. "
+                       : "This program has unregistered itself as the Windows JIT debugger. ",
+                "Attach Debugger",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         /// <summary>
