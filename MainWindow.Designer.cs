@@ -41,7 +41,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 360F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel1.Controls.Add(this.acceptButton, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.debuggersListBox, 0, 1);
@@ -50,7 +50,7 @@
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.Size = new System.Drawing.Size(904, 543);
             this.tableLayoutPanel1.TabIndex = 0;
@@ -63,11 +63,12 @@
             this.acceptButton.Location = new System.Drawing.Point(728, 12);
             this.acceptButton.Margin = new System.Windows.Forms.Padding(18, 12, 18, 12);
             this.acceptButton.Name = "acceptButton";
-            this.acceptButton.Size = new System.Drawing.Size(158, 35);
+            this.acceptButton.Padding = new System.Windows.Forms.Padding(0, 4, 0, 4);
+            this.acceptButton.Size = new System.Drawing.Size(158, 43);
             this.acceptButton.TabIndex = 0;
             this.acceptButton.Text = "Attach Debugger";
             this.acceptButton.UseVisualStyleBackColor = true;
-            this.acceptButton.Click += new System.EventHandler(this.button1_Click);
+            this.acceptButton.Click += new System.EventHandler(this.acceptButton_Click);
             // 
             // debuggersListBox
             // 
@@ -77,11 +78,11 @@
             this.tableLayoutPanel1.SetColumnSpan(this.debuggersListBox, 2);
             this.debuggersListBox.FormattingEnabled = true;
             this.debuggersListBox.ItemHeight = 25;
-            this.debuggersListBox.Location = new System.Drawing.Point(3, 63);
+            this.debuggersListBox.Location = new System.Drawing.Point(3, 70);
             this.debuggersListBox.Name = "debuggersListBox";
             this.debuggersListBox.Size = new System.Drawing.Size(898, 479);
             this.debuggersListBox.TabIndex = 1;
-            this.debuggersListBox.DoubleClick += new System.EventHandler(this.debuggersListBox_DoubleClick);
+            this.debuggersListBox.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.debuggersListBox_MouseDoubleClick);
             // 
             // debuggersLabel
             // 
@@ -89,7 +90,7 @@
             this.debuggersLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.debuggersLabel.Location = new System.Drawing.Point(3, 0);
             this.debuggersLabel.Name = "debuggersLabel";
-            this.debuggersLabel.Size = new System.Drawing.Size(354, 60);
+            this.debuggersLabel.Size = new System.Drawing.Size(268, 67);
             this.debuggersLabel.TabIndex = 2;
             this.debuggersLabel.Text = "Visual Studio instances available:";
             this.debuggersLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;

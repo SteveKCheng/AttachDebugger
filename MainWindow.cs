@@ -50,17 +50,20 @@ namespace AttachDebugger
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void acceptButton_Click(object sender, EventArgs e)
         {
             if (debuggersListBox.SelectedIndex >= 0)
+            {
                 AcceptedSelection = _debuggerInfo[debuggersListBox.SelectedIndex];
-
-            Close();
+                Close();
+            }
         }
 
-        private void debuggersListBox_DoubleClick(object sender, EventArgs e)
+        private void debuggersListBox_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            button1_Click(sender, e);
+            int index = debuggersListBox.IndexFromPoint(e.Location);
+            if (index != ListBox.NoMatches)
+                acceptButton_Click(sender, e);
         }
     }
 }
